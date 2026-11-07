@@ -6,8 +6,7 @@
   "plugins": [
     {
       "name": "rectifier",
-      "source": "./claude-code/rectifier",
-      "description": "The rectifier skill, and hooks that send the Claude Code sessions behind your pull requests to rectifier once you run `rectifier transcripts enable`."
+      "source": "./claude-code/rectifier"
     }
   ]
 }
