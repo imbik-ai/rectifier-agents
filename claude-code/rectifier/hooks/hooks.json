@@ -1,0 +1,40 @@
+{
+  "description": "Send this session to rectifier when it makes a pull request or runs `rectifier review`, and its new lines after that. Sends nothing until `rectifier transcripts enable` runs on this machine. Each hook starts a detached upload and exits; it prints nothing into the session.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v rectifier >/dev/null 2>&1 && rectifier transcripts push --hook >/dev/null 2>&1; exit 0",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(rectifier review*)",
+            "command": "command -v rectifier >/dev/null 2>&1 && rectifier transcripts push --hook >/dev/null 2>&1; exit 0",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v rectifier >/dev/null 2>&1 && rectifier transcripts push --hook >/dev/null 2>&1; exit 0",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
