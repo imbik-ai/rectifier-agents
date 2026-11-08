@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "rectifier": {
+      "type": "http",
+      "url": "https://mcp.rectifier.imbik.ai/mcp"
+    }
+  }
+}
