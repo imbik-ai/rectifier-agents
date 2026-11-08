@@ -45,6 +45,9 @@ Never ask the user to paste a token into the chat. If `RECTIFIER_CLI_TOKEN` is s
 - `--uncommitted` sends nothing the first time. It lists the files that it sends, prints the same command with
   `--confirm <code>`, and exits with code 3. Show the list to the user. If the user agrees and the list holds no
   secrets, run the command with the code.
+- If the list holds files that must not be sent, or files that are not part of the change, leave them out with
+  `--path`, a git pathspec: `--path src/` sends only that folder, and `--path ':!scratch/'` leaves one out. Give it
+  again for more. Run the command again, and show the user the new list.
 - Do not use `--post` unless the user asks. It posts the review on the branch's open pull request.
 - `-C <dir>` reviews the checkout in `<dir>`. `--json` prints JSON instead of markdown.
 
