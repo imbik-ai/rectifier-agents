@@ -36,6 +36,8 @@ Never ask the user to paste a token into the chat. If `RECTIFIER_CLI_TOKEN` is s
 | `rectifier review --uncommitted` | Staged, unstaged and untracked changes, against HEAD |
 | `rectifier review --uncommitted --base origin/main` | The uncommitted changes and the commits since `origin/main` |
 
+- Use a full review unless the user asks for a light one. `--full` asks for a full review, and `--lite` for a light
+  one. A line on stderr says which kind runs, such as `starting full review`.
 - A review takes several minutes. Run it in the background, or run it with `--no-wait`. `--no-wait` prints the
   review's job and exits. Then `rectifier status <job> --wait` waits for the end and prints the review.
 - `rectifier review` reads the whole branch every time. After you commit fixes, review only the new commits with
@@ -122,15 +124,16 @@ Each line starts with a word that tells you what it is. `<job>` is the review's 
   checkpoint)`, a newer review of your later code replaced this one.
 - `review <job> done: N new findings, ...`: the review ended. `read since <sha>` means that it read only what changed
   since an earlier review. `read the whole branch` means that it read all of the branch.
+- `review <job>: full review` or `review <job>: light review`: the kind of review that runs. This line is on stderr.
 - `review covered by #<n>: ...`: you pushed a commit that a pull request review already reads. The watch starts no
   review for it. Read that commit's findings on the pull request.
 - `review not sent: ...` or `review <job> failed: ...`: no result came for this checkpoint. Your next change sends a
   new review.
 
 A line can end with `(read <sha>, N commits behind HEAD)`. This means that the review read older code than your
-checkout holds now. A line can also end with `(may be fixed: these lines changed since <sha>)`. This means that the
-code near the finding changed after the review read it. The mark looks only at lines near the finding. Read the code
-again before you skip the finding. The mark is often wrong when you edited those lines for a different reason.
+checkout holds now. A line can also end with `(these lines changed since <sha>)`. This means that the code near the
+finding changed after the review read it. It does not mean that the finding is fixed. Often the lines changed for a
+different reason, or the fix is not complete. Read the code again before you skip the finding.
 
 ### Act on the lines
 
