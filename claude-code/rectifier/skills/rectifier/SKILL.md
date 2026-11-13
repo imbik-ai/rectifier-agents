@@ -79,6 +79,10 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   prints the review. Rectifier keeps a result for an hour after the review ends.
 - `rectifier reviews` lists the account's reviews, with the newest first. `--repo org/name`, `--pr N` and
   `--status` narrow the list. `--json` prints JSON.
+- `rectifier report --pr N` prints the findings that Rectifier posted on pull request N of this repository, laid out
+  as a `rectifier review` report but without the impact or the message for an agent. It reads the newest review of the
+  pull request that completed. Use it when the user asks you to fix Rectifier's findings on a pull or merge request.
+  `--repo org/name` names another repository, and `--json` prints JSON. Exit code 1 means a finding blocks.
 
 ## Review while you edit: `rectifier review --watch`
 
