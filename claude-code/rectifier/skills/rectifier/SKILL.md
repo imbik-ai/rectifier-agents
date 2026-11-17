@@ -62,7 +62,7 @@ Never ask the user to paste a token into the chat. If `RECTIFIER_CLI_TOKEN` is s
 | 2 | The review did not run or did not complete. The error is on stderr. |
 | 3 | The command waits for the user to agree to the files it sends (`--confirm`) |
 | 4 | `rectifier status` without `--wait` only: the review has not ended yet |
-| 130 | The wait was stopped. The review continues. |
+| 130 | The command was stopped with Ctrl-C. A review it was waiting for continues. |
 
 ### Act on the findings
 
@@ -83,6 +83,8 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   as a `rectifier review` report but without the impact or the message for an agent. It reads the newest review of the
   pull request that completed. Use it when the user asks you to fix Rectifier's findings on a pull or merge request.
   `--repo org/name` names another repository, and `--json` prints JSON. Exit code 1 means a finding blocks.
+  Reading a review's findings is asked again a few times after a 429, 502, 503, 504 or dropped connection; when reading
+  many reviews, read them one at a time rather than in parallel.
 - Once you have checked a finding of `rectifier report`, or the user tells you what it is, record it with
   `rectifier verdict <review> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<review>` is the
   review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
