@@ -83,6 +83,12 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   as a `rectifier review` report but without the impact or the message for an agent. It reads the newest review of the
   pull request that completed. Use it when the user asks you to fix Rectifier's findings on a pull or merge request.
   `--repo org/name` names another repository, and `--json` prints JSON. Exit code 1 means a finding blocks.
+- Once you have checked a finding of `rectifier report`, or the user tells you what it is, record it with
+  `rectifier verdict <review> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<review>` is the
+  review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
+  (`id` in the JSON). The labels mean what they mean for `scan-verdict` below. A later answer on the same finding
+  replaces the earlier one. A finding of a review whose findings Rectifier no longer keeps cannot be answered: exit
+  code 2.
 
 ## Go through Deep Scan findings
 
