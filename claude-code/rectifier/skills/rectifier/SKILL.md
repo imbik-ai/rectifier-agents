@@ -1,6 +1,6 @@
 ---
 name: rectifier
-description: Review code changes with rectifier, imbik's code review agent, through the `rectifier` CLI. Use it for a review of a branch, of commits or of uncommitted changes before a pull request. Also use it for the state or the findings of a rectifier review, and to keep reviewing while the user edits.
+description: Review code changes with rectifier, imbik's code review agent, through the `rectifier` CLI. Use it for a review of a branch, of commits or of uncommitted changes before a pull request. Also use it for the state or the findings of a rectifier review, to keep reviewing while the user edits, and to go through the findings of the account's Deep Scans.
 ---
 
 # rectifier
@@ -83,6 +83,33 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   as a `rectifier review` report but without the impact or the message for an agent. It reads the newest review of the
   pull request that completed. Use it when the user asks you to fix Rectifier's findings on a pull or merge request.
   `--repo org/name` names another repository, and `--json` prints JSON. Exit code 1 means a finding blocks.
+
+## Go through Deep Scan findings
+
+A Deep Scan reads a whole repository, not a change. Use these commands when the user asks you to go through or fix
+the findings of the account's Deep Scans.
+
+- `rectifier scans` lists the account's finished Deep Scans, with the newest first: the repository, when the scan
+  finished, its findings by severity, the commit it read, and the scan's id. `--json` prints JSON.
+- `rectifier scan-report <id>` prints the findings of one scan: severity, title, file and lines, what it is, why it is
+  a defect, and a link to the code.
+- `rectifier scan-report --all --json` prints the findings of the newest finished scan of each repository, as
+  `{"scans": [{"scan", "report"}], "skipped"}`. Each `report` has the commit the scan read (`sha`) and its
+  `findings`. A non-empty `scanned` (the paths read of a large repository), `left_out` (files not read as generated,
+  vendored, built or docs) or a `marks_read` of false means the scan did not read the whole repository.
+- The scan read the code at its commit. Before you change anything, check each finding against the current code.
+- Once you have checked a finding, or the user tells you what it is, record it with
+  `rectifier scan-verdict <scan> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<finding>` is
+  the finding's id, which `scan-report` prints (`id` in the JSON). `out-of-scope` is a real defect in code or of a
+  kind the user does not want scanned; `already-known` is a real defect they already knew of. A later answer on the
+  same finding replaces the earlier one. A finding of a report that expired or was deleted cannot be answered:
+  exit code 2.
+- Rectifier deletes a scan's report after 30 days unless the account's plan keeps reports. An expired or deleted
+  report cannot be read: `rectifier scan-report <id>` exits 2. `--all` does not read a report that had expired when
+  it listed the scans: it reads the newest older scan of that repository whose report is kept, if there is one.
+  `skipped` holds only a report that expired or was deleted after the list was read. A 429, 502, 503, 504 or
+  dropped connection is asked again a few times first; any other failure, or one that lasts, stops `--all` with exit
+  code 2 and no output.
 
 ## Review while you edit: `rectifier review --watch`
 
