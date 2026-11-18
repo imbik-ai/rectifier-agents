@@ -8,5 +8,8 @@
       "name": "rectifier",
       "source": "./claude-code/rectifier"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Rectifier, imbik's code review agent, for Claude Code: the rectifier skill, Rectifier's MCP server for your reviews, and session hooks."
+  }
 }
