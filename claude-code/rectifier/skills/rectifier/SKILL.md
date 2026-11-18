@@ -88,9 +88,9 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
 - Once you have checked a finding of `rectifier report`, or the user tells you what it is, record it with
   `rectifier verdict <review> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<review>` is the
   review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
-  (`id` in the JSON). The labels mean what they mean for `scan-verdict` below. A later answer on the same finding
-  replaces the earlier one. A finding of a review whose findings Rectifier no longer keeps cannot be answered: exit
-  code 2.
+  (`id` in the JSON). `out-of-scope` is a real defect in code or of a kind the user does not want reviewed; the other
+  labels mean what they mean for `scan-verdict` below. A later answer on the same finding replaces the earlier one.
+  A finding of a review whose findings Rectifier no longer keeps cannot be answered: exit code 2.
 
 ## Go through Deep Scan findings
 
@@ -107,11 +107,12 @@ the findings of the account's Deep Scans.
   vendored, built or docs) or a `marks_read` of false means the scan did not read the whole repository.
 - The scan read the code at its commit. Before you change anything, check each finding against the current code.
 - Once you have checked a finding, or the user tells you what it is, record it with
-  `rectifier scan-verdict <scan> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<finding>` is
-  the finding's id, which `scan-report` prints (`id` in the JSON). `out-of-scope` is a real defect in code or of a
-  kind the user does not want scanned; `already-known` is a real defect they already knew of. A later answer on the
-  same finding replaces the earlier one. A finding of a report that expired or was deleted cannot be answered:
-  exit code 2.
+  `rectifier scan-verdict <scan> <finding> real|not-real|wont-fix|already-known [--note "..."]`. `<finding>` is the
+  finding's id, which `scan-report` prints (`id` in the JSON). `wont-fix` is a real defect the user will not fix (of
+  low value to them, in test or dead code, or of a kind they do not care about); `already-known` is a real defect they
+  already knew of. A later answer on the same finding replaces the earlier one. A finding of a report that expired
+  or was deleted cannot be answered: exit code 2. A CLI older than 0.6.9 refuses `wont-fix`; upgrade it (step 3 of
+  Set up), or send `out-of-scope`, which the service stores as `wont-fix`.
 - Rectifier deletes a scan's report after 30 days unless the account's plan keeps reports. An expired or deleted
   report cannot be read: `rectifier scan-report <id>` exits 2. `--all` does not read a report that had expired when
   it listed the scans: it reads the newest older scan of that repository whose report is kept, if there is one.
