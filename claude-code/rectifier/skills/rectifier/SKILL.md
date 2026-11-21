@@ -16,8 +16,13 @@ review runs on the service. Nothing needs pushing, and no pull request is needed
    user's browser on rectifier's sign-in page and waits up to 10 minutes. Tell the user to check that the code and
    the host name on the page match the terminal, then to approve. With no browser on this machine, run
    `rectifier login --no-browser`, and give the user the link it prints.
-3. If a command says that the CLI is too old, upgrade it with `uv tool upgrade imbik-rectifier`, or
-   `pipx upgrade imbik-rectifier`, and then run `rectifier skill install` again to update this file.
+3. The CLI upgrades itself, at most once a day, when the service has a newer version. After a command, it prints
+   two lines on stderr, `updating rectifier 0.6.9 to 0.7.2...` and then `updated rectifier 0.6.9 to 0.7.2`, and
+   updates this file. That command ran on the old version, and the next one runs on the new one. If a command says
+   that the CLI is too old, run it again after the `updated` line. If the CLI says only that a newer version is out,
+   or that it stays at its version, or a command still says that the CLI is too old, upgrade it with
+   `uv tool upgrade imbik-rectifier`, or `pipx upgrade imbik-rectifier`, and then run `rectifier skill install` again
+   to update this file.
 
 The CLI needs the network, and `rectifier login` writes its token under the user's home folder. If your commands run
 in a sandbox that blocks the network, such as the default sandbox of Codex or Cursor, ask the user to approve running
@@ -36,7 +41,7 @@ Never ask the user to paste a token into the chat. If `RECTIFIER_CLI_TOKEN` is s
 | `rectifier review --uncommitted` | Staged, unstaged and untracked changes, against HEAD |
 | `rectifier review --uncommitted --base origin/main` | The uncommitted changes and the commits since `origin/main` |
 
-- Use a full review unless the user asks for a light one. `--full` asks for a full review, and `--lite` for a light
+- Use a full review unless the user asks for a light one. `--full` asks for a full review, and `--light` for a light
   one. A line on stderr says which kind runs, such as `starting full review`.
 - A review takes several minutes. Run it in the background, or run it with `--no-wait`. `--no-wait` prints the
   review's job and exits. Then `rectifier status <job> --wait` waits for the end and prints the review.
@@ -85,12 +90,32 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   `--repo org/name` names another repository, and `--json` prints JSON. Exit code 1 means a finding blocks.
   Reading a review's findings is asked again a few times after a 429, 502, 503, 504 or dropped connection; when reading
   many reviews, read them one at a time rather than in parallel.
-- Once you have checked a finding of `rectifier report`, or the user tells you what it is, record it with
-  `rectifier verdict <review> <finding> real|not-real|out-of-scope|already-known [--note "..."]`. `<review>` is the
-  review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
-  (`id` in the JSON). `out-of-scope` is a real defect in code or of a kind the user does not want reviewed; the other
-  labels mean what they mean for `scan-verdict` below. A later answer on the same finding replaces the earlier one.
-  A finding of a review whose findings Rectifier no longer keeps cannot be answered: exit code 2.
+- After you push to a pull request or comment `@rectifier review` on it, run
+  `rectifier report --pr <n> --wait --timeout 360` to wait for that review and print its findings. Run it from the
+  checkout at the commit you pushed: it waits for the review of that HEAD (of any commit when HEAD is detached, the
+  checkout is of another repository, or it is on Azure DevOps). Exit codes: 0 nothing blocks, 1 a finding blocks,
+  2 read the message on stderr, which says what to do (the review failed or was cancelled, Rectifier kept no record of
+  its findings, or no review of HEAD started), 4 the time limit passed while the review had not ended, or before a new
+  review did, or the service did not answer for 2 minutes: run the same command again. A CLI older than 0.7.0
+  refuses `--wait`: upgrade it with `uv tool upgrade imbik-rectifier` (step 3 of Set up).
+- The report also lists the Code Health findings that the review's Code Health comment posted. Each has a kind,
+  such as wrong doc or leftover, and a level, worth fixing or optional, in place of a severity. A Code Health finding
+  never blocks. In the JSON, `kind` is `code_health` for these and `bug` for the others.
+- Answer every finding of `rectifier report`, Code Health findings included: once you have checked it, or the user
+  tells you what it is, run `rectifier verdict <review> <finding> <label> [--note "..."]`. `<review>` is
+  the review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
+  (`id` in the JSON). A later answer on the same finding replaces the earlier one. A finding of a review whose
+  findings Rectifier no longer keeps cannot be answered: exit code 2.
+- For a bug finding, the label is `real`, `not-real`, `out-of-scope` or `already-known`. `out-of-scope` is a real
+  defect in code or of a kind the user does not want reviewed; the other labels mean what they mean for
+  `scan-verdict` below. If the severity is wrong, add the right one: `--severity Critical|High|Medium|Low`. Do not
+  add it to `not-real`.
+- For a Code Health finding, the label is `real`, `not-real`, `already-known` or `not-worth-fixing`.
+  `not-worth-fixing` is true, but not worth the change. If the level is wrong, add the right one:
+  `--level worth_fixing|optional`, with `real` or `already-known` only.
+- If the CLI refuses `--severity`, `--level` or `not-worth-fixing`, it sent nothing: upgrade it (step 3 of Set up),
+  then run the same `rectifier verdict` again. If it says that the service did not keep the severity or level, the
+  label is kept; run the verdict again later to add the severity or level.
 
 ## Go through Deep Scan findings
 

@@ -1,9 +1,10 @@
 {
   "name": "rectifier",
-  "version": "0.6.9",
+  "version": "0.7.0",
   "description": "The rectifier skill, Rectifier's MCP server for looking up your reviews, and hooks that send the Claude Code sessions behind your pull requests to rectifier once you run `rectifier transcripts enable`.",
   "author": {
     "name": "imbik"
   },
-  "homepage": "https://app.rectifier.imbik.ai/docs/cli"
+  "homepage": "https://app.rectifier.imbik.ai/docs/cli",
+  "privacyPolicyUrl": "https://app.termly.io/policy-viewer/policy.html?policyUUID=0dc6045b-330a-42bc-841e-4c766b758469"
 }
