@@ -1,6 +1,6 @@
 {
   "name": "rectifier",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "The rectifier skill, Rectifier's MCP server for looking up your reviews, and hooks that send the Claude Code sessions behind your pull requests to rectifier once you run `rectifier transcripts enable`.",
   "author": {
     "name": "imbik"

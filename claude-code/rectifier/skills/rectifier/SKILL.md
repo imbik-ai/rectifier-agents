@@ -101,11 +101,33 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
 - The report also lists the Code Health findings that the review's Code Health comment posted. Each has a kind,
   such as wrong doc or leftover, and a level, worth fixing or optional, in place of a severity. A Code Health finding
   never blocks. In the JSON, `kind` is `code_health` for these and `bug` for the others.
-- Answer every finding of `rectifier report`, Code Health findings included: once you have checked it, or the user
-  tells you what it is, run `rectifier verdict <review> <finding> <label> [--note "..."]`. `<review>` is
+- Handle every finding of `rectifier report`, Code Health findings included, in one of three ways, once you have
+  checked it against the code:
+  - Fix it, when it is real and the fix is yours to make.
+  - Answer it with `rectifier verdict`, with a note that gives the evidence: the code, a test result or the
+    documented behavior that shows what it is. Do this too when the user tells you what it is.
+  - Escalate it to the user, when it needs their decision: a design or product choice, or a disagreement you cannot
+    settle with evidence. Say what the finding is, what you found, and what the choice is. Do not label it to make it
+    go away; label it after the user decides.
+- To answer a finding, run `rectifier verdict <review> <finding> <label> [--note "..."]`. `<review>` is
   the review's id, which the report's last line names (`review.id` in the JSON), and `<finding>` the finding's id
   (`id` in the JSON). A later answer on the same finding replaces the earlier one. A finding of a review whose
   findings Rectifier no longer keeps cannot be answered: exit code 2.
+- To answer several findings of one review, write the answers to a file and send them in one request:
+  `rectifier verdict <review> --from answers.json`. The file is a JSON list, or one JSON object a line, of
+  `{"finding", "label", "note", "severity", "level"}` (all but `finding` and `label` optional); `--from -` reads
+  stdin. At most 100, each finding once. The service keeps all of them or none: if it refuses one, it names it
+  (`verdicts[<place>]` and its id), so fix that answer and send the file again. If the CLI says it cannot tell
+  whether the answers were kept (it lost contact with the service), send the same file again: that is safe.
+  A service older than this option gets them one at a time instead: the CLI says so, stops at the first it refuses,
+  and the answers before it stay kept.
+  Prefer this to many single calls.
+  If the CLI refuses `--from`, it sent nothing: upgrade it (step 3 of Set up), or answer one at a time.
+- A bug finding answered `not-real`, `out-of-scope` or `already-known` is held back on later reviews of the same pull
+  or merge request, as a resolved thread is, until a later answer on it says `real`. A thread a member resolved still
+  holds it after that, until it is unresolved. A Critical finding is never held.
+  The next review reads the label and the note under the finding, so a note with evidence is what keeps a finding
+  from coming back reworded.
 - For a bug finding, the label is `real`, `not-real`, `out-of-scope` or `already-known`. `out-of-scope` is a real
   defect in code or of a kind the user does not want reviewed; the other labels mean what they mean for
   `scan-verdict` below. If the severity is wrong, add the right one: `--severity Critical|High|Medium|Low`. Do not
@@ -138,6 +160,9 @@ the findings of the account's Deep Scans.
   already knew of. A later answer on the same finding replaces the earlier one. A finding of a report that expired
   or was deleted cannot be answered: exit code 2. A CLI older than 0.6.9 refuses `wont-fix`; upgrade it (step 3 of
   Set up), or send `out-of-scope`, which the service stores as `wont-fix`.
+- To answer several findings of one scan in one request, run `rectifier scan-verdict <scan> --from answers.json`,
+  with a file as for `rectifier verdict --from` but of `{"finding", "label", "note"}` only. The service keeps all of
+  them or none, except an older service, which gets them one at a time as above.
 - Rectifier deletes a scan's report after 30 days unless the account's plan keeps reports. An expired or deleted
   report cannot be read: `rectifier scan-report <id>` exits 2. `--all` does not read a report that had expired when
   it listed the scans: it reads the newest older scan of that repository whose report is kept, if there is one.
