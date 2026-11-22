@@ -31,6 +31,15 @@ in a sandbox that blocks the network, such as the default sandbox of Codex or Cu
 Never ask the user to paste a token into the chat. If `RECTIFIER_CLI_TOKEN` is set, the CLI uses it, and
 `rectifier login` is not needed.
 
+The token is kept in one folder for the machine's user: `$XDG_CONFIG_HOME/rectifier`, or `~/.config/rectifier`
+when `XDG_CONFIG_HOME` is not set, and `%LOCALAPPDATA%\rectifier` on Windows. If the user has two Claude Code
+configurations, for example one for work and one for personal projects, each can sign in to its own account: set
+`RECTIFIER_CONFIG_DIR` to an absolute path of its own in that configuration's `settings.json` `env`, then run
+`rectifier login` in a new session of it. The setting needs CLI 0.9.0 or later. An older CLI ignores it and keeps one token for every configuration, so run
+`rectifier --version` first. A configuration without the
+setting uses the shared folder. If
+`RECTIFIER_CLI_TOKEN` is set, it still wins over the token in the folder.
+
 ## Review a change
 
 | Command | Reviews |
