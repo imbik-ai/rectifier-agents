@@ -86,11 +86,17 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
 - Check each finding against the current code before you change anything.
 - If the finding is real, follow its message to fix it.
 - If the finding is wrong or not worth fixing, change nothing, and tell the user why.
+- Each finding has an id under its title, and the report's last line names the review's id (`review.id` and
+  `findings[].id` in the JSON saved under `.rectifier/reviews/`). Answer each finding you checked with `rectifier
+  verdict`, as for `rectifier report` below, with a note that gives the evidence. This works after `rectifier status`
+  no longer has the result, and only with the token of the user who asked for the review: another user's token gets
+  "no review". `rectifier report <review id>` prints the findings again.
 
 ## Look up reviews
 
 - `rectifier status <job>` says where a review is: waiting, running and how far, or ended. After the end, the command
-  prints the review. Rectifier keeps a result for an hour after the review ends.
+  prints the review. Rectifier keeps a result for an hour after the review ends; after that, `rectifier report <review
+  id>` reads its findings, by the review id the report names.
 - `rectifier reviews` lists the account's reviews, with the newest first. `--repo org/name`, `--pr N` and
   `--status` narrow the list. `--json` prints JSON.
 - `rectifier report --pr N` prints the findings that Rectifier posted on pull request N of this repository, laid out
@@ -124,29 +130,37 @@ saves the review under `.rectifier/reviews/` in the checkout, which git ignores.
   findings Rectifier no longer keeps cannot be answered: exit code 2.
 - To answer several findings of one review, write the answers to a file and send them in one request:
   `rectifier verdict <review> --from answers.json`. The file is a JSON list, or one JSON object a line, of
-  `{"finding", "label", "note", "severity", "level"}` (all but `finding` and `label` optional); `--from -` reads
-  stdin. At most 100, each finding once. The service keeps all of them or none: if it refuses one, it names it
-  (`verdicts[<place>]` and its id), so fix that answer and send the file again. If the CLI says it cannot tell
+  objects with the keys `finding` (the finding's id), `label`, `note`, `severity` and `reason` (a bug finding's) and
+  `level` (a Code Health finding's); all but `finding` and `label` are optional. `--from -` reads stdin. At most 100, each
+  finding once. The service keeps all of them or none: if it refuses one, it names it (`verdicts[<place>]` and its
+  id), so fix that answer and send the file again. If the CLI says it cannot tell
   whether the answers were kept (it lost contact with the service), send the same file again: that is safe.
   A service older than this option gets them one at a time instead: the CLI says so, stops at the first it refuses,
   and the answers before it stay kept.
   Prefer this to many single calls.
   If the CLI refuses `--from`, it sent nothing: upgrade it (step 3 of Set up), or answer one at a time.
-- A bug finding answered `not-real`, `out-of-scope` or `already-known` is held back on later reviews of the same pull
+- A bug finding answered `not-real`, `out-of-scope`, `already-known` or `not-worth-fixing` is held back on later
+  reviews of the same pull
   or merge request, as a resolved thread is, until a later answer on it says `real`. A thread a member resolved still
-  holds it after that, until it is unresolved. A Critical finding is never held.
+  holds it after that, until it is unresolved. A Critical finding is never held. An answer on a
+  `rectifier review` that was not posted holds nothing back: only findings a review posted are held.
   The next review reads the label and the note under the finding, so a note with evidence is what keeps a finding
   from coming back reworded.
-- For a bug finding, the label is `real`, `not-real`, `out-of-scope` or `already-known`. `out-of-scope` is a real
-  defect in code or of a kind the user does not want reviewed; the other labels mean what they mean for
-  `scan-verdict` below. If the severity is wrong, add the right one: `--severity Critical|High|Medium|Low`. Do not
-  add it to `not-real`.
+- For a bug finding, the label is `real`, `not-real`, `out-of-scope`, `already-known` or `not-worth-fixing`.
+  `out-of-scope` is a real defect in code or of a kind the user does not want reviewed; `not-worth-fixing` is a real
+  defect that is not worth the change; the other labels mean what they mean for `scan-verdict` below.
+- With `real`, `already-known` and `not-worth-fixing`, always give the severity you judge right, also when the
+  finding's own severity is right: `--severity Critical|High|Medium|Low`. Do not add it to `not-real`.
+- With `not-real` on a bug finding, always say why with `--reason`: `misread` (the finding misreads the code),
+  `unreachable` (the path it names cannot happen), `intended` (the behavior is by design), `handled` (the failure
+  is handled in another place), `speculative` (a risk with no concrete path to a failure) or `other` (the note says
+  why). Only `not-real` takes a reason, and a Code Health finding takes none.
 - For a Code Health finding, the label is `real`, `not-real`, `already-known` or `not-worth-fixing`.
   `not-worth-fixing` is true, but not worth the change. If the level is wrong, add the right one:
   `--level worth_fixing|optional`, with `real` or `already-known` only.
-- If the CLI refuses `--severity`, `--level` or `not-worth-fixing`, it sent nothing: upgrade it (step 3 of Set up),
-  then run the same `rectifier verdict` again. If it says that the service did not keep the severity or level, the
-  label is kept; run the verdict again later to add the severity or level.
+- If the CLI refuses `--severity`, `--reason`, `--level` or `not-worth-fixing`, it sent nothing: upgrade it (step 3
+  of Set up), then run the same `rectifier verdict` again. If it says that the service did not keep the severity,
+  reason or level, the label is kept; run the verdict again later to add it.
 
 ## Go through Deep Scan findings
 
