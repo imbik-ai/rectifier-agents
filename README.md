@@ -1,11 +1,14 @@
 # rectifier-agents
 
-The Claude Code plugin for [Rectifier](https://rectifier.imbik.ai/), imbik's code review agent. The plugin adds:
+The Claude Code plugin for [Rectifier AI code review](https://rectifier.imbik.ai/), imbik's code review agent. The plugin adds:
 
 - **The rectifier skill**, which teaches the agent to review a branch, commits or uncommitted changes with the
   `rectifier` CLI, and to read a review's state and findings.
 - **Rectifier's MCP server**, `https://mcp.rectifier.imbik.ai/mcp`, which lets the agent read your account's reviews:
   which reviews ran, how each one went and what it found. The server only reads, and every call needs a sign-in.
+  It is listed in the [MCP registry](https://registry.modelcontextprotocol.io/v0/servers?search=ai.imbik/rectifier) and on
+  [Glama](https://glama.ai/mcp/connectors/ai.imbik/rectifier):
+  [![Rectifier MCP connector](https://glama.ai/mcp/connectors/ai.imbik/rectifier/badges/score.svg)](https://glama.ai/mcp/connectors/ai.imbik/rectifier)
 - **Hooks** that send the Claude Code session behind a pull request to Rectifier. They send nothing until you run
   `rectifier transcripts enable` on the machine.
 
